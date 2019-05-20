@@ -1,0 +1,73 @@
+$schema: https://schemas.opendatacube.org/dataset
+
+id: {id}
+product:
+  name: usgs_ls8o_level1_1
+  href: https://collections.dea.ga.gov.au/product/usgs_ls8o_level1_1
+
+crs: epsg:32651
+geometry:
+  type: Polygon
+  coordinates: {coordinates}
+grids:
+  default:
+    shape: [7821, 7741]
+    transform: [30.0, 0.0, 513585.0, 0.0, -30.0, -2758485.0, 0.0, 0.0, 1.0]
+  panchromatic:
+    shape: [15641, 15481]
+    transform: [15.0, 0.0, 513592.5, 0.0, -15.0, -2758492.5, 0.0, 0.0, 1.0]
+
+properties:
+  datetime: {datetime}
+  odc:creation_datetime: {odc_creation_datetime}
+  odc:file_format: GeoTIFF
+  eo:platform: landsat-8
+  eo:instrument: OLI_TIRS
+  eo:gsd: {prop_eo_gsd}
+  eo:cloud_cover: {eo_cloud_cover}
+  eo:sun_azimuth: {eo_sun_azimuth}
+  eo:sun_elevation: {eo_sun_elevation}
+  landsat:collection_number: 1
+  landsat:landsat_scene_id: LC81080782015337LGN01
+  landsat:landsat_product_id: LC08_L1TP_108078_20151203_20170401_01_T1
+  landsat:station_id: LGN
+  landsat:processing_software_version: LPGS_2.7.0
+  landsat:data_type: L1TP
+  landsat:wrs_path: 108
+  landsat:wrs_row: 78
+  landsat:collection_category: T1
+  landsat:ground_control_points_version: 4
+  landsat:ground_control_points_model: 264
+  landsat:geometric_rmse_model_x: 3.107
+  landsat:geometric_rmse_model_y: 3.366
+  landsat:ground_control_points_verify: 82
+  landsat:geometric_rmse_verify: 1.978
+
+measurements:
+  coastal_aerosol:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B1.TIF
+  blue:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B2.TIF
+  green:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B3.TIF
+  red:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B4.TIF
+  nir:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B5.TIF
+  swir1:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B6.TIF
+  swir2:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B7.TIF
+  panchromatic:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B8.TIF
+    grid: panchromatic
+  cirrus:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B9.TIF
+  lwir1:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B10.TIF
+  lwir2:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_B11.TIF
+  quality:
+    path: LC08_L1TP_108078_20151203_20170401_01_T1_BQA.TIF
+
+lineage: {}
