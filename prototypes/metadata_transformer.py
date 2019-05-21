@@ -1,5 +1,6 @@
 from parse import parse, compile
 from pathlib import Path
+import yaml
 import click
 
 
@@ -46,40 +47,63 @@ def find_file_paths(path: Path):
     :param path:
     :return: A generator of path objects.
     """
-    for afile in path.iterdir():
-        if afile.suffix == '.yaml':
-            yield afile
+    for afile in path.rglob('ga-metadata.yaml'):
+        yield afile
 
 
 def get_coordinates(dataset):
     """
     Extract and return geometry coordinates as a list in a dictionary:
+
+    returns
+
     {
-      'coordinates': [...]
+      'geometry': {
+                    'type' : 'Polygon',
+                    'coordinates': [...]
+                  }
     }
+
+    or
+
+    empty dictionary
     """
     pass
 
 
-def get_measurement_paths(dataset):
+def get_measurements(dataset, band_grids=None):
     """
     Extract and return measurement paths in a dictionary:
+
+    Returns
+
     {
-      'coastal_aerosol': path_name1,
-      'panchromatic': path_name2,
+      'measurements':
+      {
+        'coastal_aerosol': {
+                             'path': path_name1,
+                             'band': band_number,
+                             'layer': null or 'layer_name'
+                             'grid': 'ir'
+                           },
+        ...
+      }
     }
     """
     pass
 
 
-def get_properties(dataset, offsets=None):
+def get_properties(dataset, property_offsets=None):
     """
     Extract properties and return values in a dictionary:
     {
-      'datetime': time,
-      'odc_creation_datetime: creation_time
+      'properties':
+      {
+        'datetime': time,
+        'odc:creation_datetime': creation_time,
+        ...
+      }
     }
-    Do you want offsets in config?
     """
     pass
 
@@ -88,8 +112,12 @@ def get_lineage(dataset):
     """
     Extract immediate parents.
     {
-      'nbar': [id1, id2]
-      'pq': [id3]
+      'lineage':
+      {
+        'nbar': [id1, id2],
+        'pq': [id3]
+        ...
+      }
     }
     """
     pass
