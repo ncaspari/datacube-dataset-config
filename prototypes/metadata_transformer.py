@@ -90,7 +90,13 @@ def get_measurements(dataset, band_grids=None):
       }
     }
     """
-    pass
+    grids_map = {m: grid for grid in band_grids for m in grid}
+    measurements = dataset.measurements
+    for m in measurements:
+        if grids_map.get(m):
+            measurements[m]['grid'] = grids_map[m]
+
+    return {'measurements': measurements}
 
 
 def get_properties(dataset, property_offsets=None):
@@ -105,10 +111,33 @@ def get_properties(dataset, property_offsets=None):
       }
     }
     """
-    pass
+    props = dict()
+    props['datetime'] = dataset.time
+    props['odc:creation_datetime'] = dataset.indexed_time
+
+    return {'properties': props}
 
 
-def get_lineage(dataset):
+def get_immediate_parents(index, id):
+    from datacube.drivers.postgres._fields import NativeField
+    from datacube.drivers.postgres._schema import DATASET_SOURCE
+    from sqlalchemy import select
+
+    source_id = NativeField('source_id', 'source_id', DATASET_SOURCE.c.source_dataset_ref)
+    classifier = NativeField('classifier', 'classifier', DATASET_SOURCE.c.classifier)
+
+    with index._db.connect() as connection:
+        results = connection.execute(
+            select(
+                [source_id, classifier]
+            ).where(
+                DATASET_SOURCE.c.dataset_ref == id
+            )
+        )
+    return results
+
+
+def get_lineage(dataset, sources):
     """
     Extract immediate parents.
     {
@@ -120,6 +149,7 @@ def get_lineage(dataset):
       }
     }
     """
-    pass
-
-
+    lineage = dict()
+    for source in sources:
+        lineage.get(source.classifier, []).append(source.source_id)
+    return {'lineage': lineage}
