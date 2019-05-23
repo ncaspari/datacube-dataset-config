@@ -1,4 +1,3 @@
-from parse import parse, compile
 from pathlib import Path
 import yaml
 import click
@@ -117,26 +116,7 @@ def get_properties(dataset, property_offsets=None):
     return {'properties': props}
 
 
-def get_immediate_parents(index, id):
-    from datacube.drivers.postgres._fields import NativeField
-    from datacube.drivers.postgres._schema import DATASET_SOURCE
-    from sqlalchemy import select
-
-    source_id = NativeField('source_id', 'source_id', DATASET_SOURCE.c.source_dataset_ref)
-    classifier = NativeField('classifier', 'classifier', DATASET_SOURCE.c.classifier)
-
-    with index._db.connect() as connection:
-        results = connection.execute(
-            select(
-                [DATASET_SOURCE.c.dataset_ref, DATASET_SOURCE.c.classifier]
-            ).where(
-                DATASET_SOURCE.c.dataset_ref == id
-            )
-        ).fetchall()
-    return results
-
-
-def get_lineage(dataset, sources):
+def get_lineage(dataset):
     """
     Extract immediate parents.
     {
@@ -149,8 +129,8 @@ def get_lineage(dataset, sources):
     }
     """
     lineage = dict()
-    for source in sources:
-        lineage.get(source.classifier, []).append(source.source_id)
+    for classifier in dataset.sources:
+        lineage[classifier] = dataset.sources[classifier].id
     return {'lineage': lineage}
 
 
