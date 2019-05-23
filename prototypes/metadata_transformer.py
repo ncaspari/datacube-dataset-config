@@ -2,54 +2,111 @@ from pathlib import Path
 import yaml
 import click
 
+from datacube.testutils.io import native_geobox
+from datacube import Datacube
+
+
+@click.group(help=__doc__)
+@click.option('--datacube-config', '-c', help="Pass the configuration file to access the database",
+              type=click.Path(exists=True))
+@click.pass_context
+def cli(ctx, datacube_config):
+    """ Used to pass the datacube index to functions via click."""
+    ctx.obj = Datacube(config=datacube_config).index
+
 
 @cli.command()
-@click.option('--product', help='Which product?')
-@click.option('--template_path', help='Dataset yaml template file')
+@click.option('--product', required=True, help='Which product?')
+@click.option('--config', required=True, help='The configuration file for transformation')
+@click.option('--output-dir', required=True, help='New metadata yaml file is written to this dir')
 @click.pass_obj
-def transform_metadata(path, product, template_path):
-    file_paths = find_file_paths(Path(path))
+def transform(index, product, config, output_dir):
 
-    with open(str(template_path)) as fd:
-        yaml_template = fd.read()
+    # Get the product
+    dataset_type = index.products.get_by_name(product)
 
-    for file_path in file_paths:
-        print(file_path)
-        with open(str(file_path)) as fd:
-            dataset = fd.read()
-        coordinates = get_coordinates(dataset)
-        measurement_paths = get_measurement_paths(dataset)
-        properties = get_properties(dataset)
-        lineage = get_lineage(dataset)
-        values = {**coordinates, **measurement_paths, **properties, **lineage}
-        write_transformed_dataset(yaml_template, values)
+    with open(config, 'r') as config_file:
+        cfg = yaml.load(config_file)
 
-
-def write_transformed_dataset(yaml_template, output_file, values):
-
-    filled_template = yaml_template.format(**values)
-
-    # validate and write out
-    try:
-        new_dataset = yaml.load(filled_template)
-    except yaml.YAMLError as err:
-        print(err)
+    # Is this a ingested product?
+    if dataset_type.grid_spec is not None:
+        transform_ingested_datasets(index, product, cfg, Path(output_dir))
     else:
-        with open(output_file, 'w') as out_file:
-            yaml.dump(new_dataset, out_file, default_flow_style=False)
+        transform_indexed_datasets(index, product, cfg, Path(output_dir))
 
 
-def find_file_paths(path: Path):
+def transform_ingested_datasets(index, product, config, output_dir):
     """
-    Return a list of metadata yaml file path objects.
-    :param path:
-    :return: A generator of path objects.
+    Transform the metadata of ingested product. The product-wide fixed sections
+    of metadata such as 'grids' is computed just once.
     """
-    for afile in path.rglob('ga-metadata.yaml'):
-        yield afile
+
+    dataset_ids = index.datasets.search_returning(field_names=('id',), product=product)
+
+    # Compute 'grids' section
+    dataset_id = next(dataset_ids)
+    dataset = index.datasets.get(dataset_id.id, include_sources=True)
+    grids = get_grids(dataset, config.get('grids'))
+
+    # and process first file
+    dataset_sections = (grids,) + _variable_sections_of_metadata(dataset, config)
+    _make_and_write_dataset(get_output_file(dataset, output_dir), *dataset_sections)
+
+    for dataset_id in dataset_ids:
+
+        dataset = index.datasets.get(dataset_id.id, include_sources=True)
+
+        dataset_sections = (grids,) + _variable_sections_of_metadata(dataset, config)
+        _make_and_write_dataset(get_output_file(dataset, output_dir), *dataset_sections)
 
 
-def get_coordinates(dataset):
+def transform_indexed_datasets(index, product, config, output_dir):
+    """
+    Transform metadata of an indexed product. All sections of metadata are computed
+    per dataset.
+    """
+
+    for dataset_id in index.datasets.search_returning(field_names=('id',), product=product):
+
+        dataset = index.datasets.get(dataset_id.id, include_sources=True)
+        grids = get_grids(dataset, config.get('grids'))
+        dataset_sections = (grids,) + _variable_sections_of_metadata(dataset, config)
+        _make_and_write_dataset(get_output_file(dataset, output_dir), *dataset_sections)
+
+
+def get_output_file(dataset, output_dir):
+    """
+    Compute the output metadata file name for the given dataset.
+    """
+
+    out_file_name = str(dataset.id) + '-metadata.yaml'
+
+    return output_dir / out_file_name
+
+
+def _variable_sections_of_metadata(dataset, config):
+    """
+    Compute variable sections (i.e. those sections that vary per dataset)
+    """
+
+    return get_geometry(dataset), get_measurements(dataset, config.get('grids')), \
+           get_properties(dataset), get_lineage(dataset)
+
+
+def _make_and_write_dataset(out_file_name, *args):
+    """
+    Assemble the metadata sections and write out.
+    """
+
+    dataset = dict()
+    for arg in args:
+        dataset.update(arg)
+
+    with open(out_file_name, 'w') as out_file:
+        yaml.dump(dataset, out_file, default_flow_style=False)
+
+
+def get_geometry(dataset):
     """
     Extract and return geometry coordinates as a list in a dictionary:
 
@@ -66,7 +123,64 @@ def get_coordinates(dataset):
 
     empty dictionary
     """
-    pass
+
+    valid_data = dataset._gs.get('valid_data')
+
+    return {'geometry': valid_data} if valid_data else dict()
+
+
+def get_grids(dataset, band_grids=None):
+    """
+    'band_grids' specify bands for each grid as in:
+    {
+        default: [swir1, swir2]
+        ir: [ir1, ir2]
+    }
+
+    All the bands not included in the 'band_grids' considered 'default'
+
+    Returns grids as in
+    {
+     grids:
+        default:
+            shape: [7731, 7621]
+            transform: [30.0, 0.0, 306285.0, 0.0, -30.0, -1802085.0, 0, 0, 1]
+        ir:
+            shape: [3865, 3810]
+            transform: [60.0, 0.0, 306285.0, 0.0, -60.0, -1802085.0, 0, 0, 1]
+    }
+    """
+
+    if not band_grids:
+        # Assume all measurements belong to default grid
+        geo = native_geobox(dataset, [list(dataset.measurements)[0]])
+        return {'grids': {
+            'default': {
+                'shape': list(geo.shape),
+                'transform': list(geo.transform)
+            }
+        }}
+    else:
+        grids = dict()
+        for grid_name in band_grids:
+            geo = native_geobox(dataset, [band_grids[grid_name][0]])
+            grids[grid_name] = {
+                'shape': list(geo.shape),
+                'transform': list(geo.transform)
+            }
+        if not band_grids.get('default'):
+            specified_bands = set()
+            for grid in band_grids:
+                specified_bands.update(band_grids[grid])
+            all_bands = set(list(dataset.measurements))
+            default_bands = all_bands - specified_bands
+            if bool(default_bands):
+                geo = native_geobox(dataset, [list(default_bands)[0]])
+                grids['default'] = {
+                    'shape': list(geo.shape),
+                    'transform': list(geo.transform)
+                }
+        return {'grids': grids}
 
 
 def get_measurements(dataset, band_grids=None):
