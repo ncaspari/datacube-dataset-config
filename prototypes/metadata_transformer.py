@@ -1,3 +1,15 @@
+"""
+Metadata Transformation from old format to new format:
+Example usage:
+ python metadata_transformer.py --datacube-config $HOME/.datacube.conf transform --product aster_l1t_swir
+    --config metadata_transform_config.yaml --output-dir /g/data/u46/users/aj9439/metadata
+
+The config file contains the grid mappings to band names:
+    grids:
+      default: ['3', '4', '5']
+      swir: ['1', '2']
+
+"""
 from pathlib import Path
 import yaml
 import click
@@ -88,8 +100,11 @@ def _variable_sections_of_metadata(dataset, config):
     """
     Compute variable sections (i.e. those sections that vary per dataset)
     """
+    new_dataset = {'id': str(dataset.id),
+                   'crs': 'EPSG:' + str(dataset.crs.epsg),
+                   'location': [uri for uri in dataset.uris]}
 
-    return get_geometry(dataset), get_measurements(dataset, config.get('grids')), \
+    return new_dataset, get_geometry(dataset), get_measurements(dataset, config.get('grids')), \
            get_properties(dataset), get_lineage(dataset)
 
 
@@ -202,11 +217,13 @@ def get_measurements(dataset, band_grids=None):
       }
     }
     """
-    grids_map = {m: grid for grid in band_grids for m in grid}
+    grids_map = {m: grid for grid in band_grids for m in band_grids[grid]}
     measurements = dataset.measurements
     for m in measurements:
         if grids_map.get(m):
             measurements[m]['grid'] = grids_map[m]
+        else:
+            measurements[m]['grid'] = 'default'
 
     return {'measurements': measurements}
 
@@ -224,7 +241,7 @@ def get_properties(dataset, property_offsets=None):
     }
     """
     props = dict()
-    props['datetime'] = dataset.time
+    props['datetime'] = [dataset.time.begin, dataset.time.end]
     props['odc:creation_datetime'] = dataset.indexed_time
 
     return {'properties': props}
