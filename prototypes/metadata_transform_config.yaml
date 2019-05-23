@@ -1,4 +1,4 @@
 # band to grid mapping
 # default grid is not specified and all bands not specified belong to default
 grids:
-  swir: [swir1, swir2]
+  swir: ['1', '2']

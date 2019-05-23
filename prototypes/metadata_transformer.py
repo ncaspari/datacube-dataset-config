@@ -5,7 +5,6 @@ import click
 
 
 @cli.command()
-@click.argument('path')
 @click.option('--product', help='Which product?')
 @click.option('--template_path', help='Dataset yaml template file')
 @click.pass_obj
@@ -129,11 +128,11 @@ def get_immediate_parents(index, id):
     with index._db.connect() as connection:
         results = connection.execute(
             select(
-                [source_id, classifier]
+                [DATASET_SOURCE.c.dataset_ref, DATASET_SOURCE.c.classifier]
             ).where(
                 DATASET_SOURCE.c.dataset_ref == id
             )
-        )
+        ).fetchall()
     return results
 
 
@@ -153,3 +152,7 @@ def get_lineage(dataset, sources):
     for source in sources:
         lineage.get(source.classifier, []).append(source.source_id)
     return {'lineage': lineage}
+
+
+if __name__ == '__main__':
+    cli()
