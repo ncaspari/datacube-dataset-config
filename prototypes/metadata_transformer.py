@@ -3,6 +3,7 @@ Metadata Transformation from old format to new format:
 Example usage:
  python metadata_transformer.py --datacube-config $HOME/.datacube.conf transform --product aster_l1t_swir
     --config metadata_transform_config.yaml --output-dir /g/data/u46/users/aj9439/metadata
+    --limit 10
 
 The config file contains the grid mappings to band names:
     grids:
@@ -31,8 +32,9 @@ def cli(ctx, datacube_config):
 @click.option('--product', required=True, help='Which product?')
 @click.option('--config', required=True, help='The configuration file for transformation')
 @click.option('--output-dir', required=True, help='New metadata yaml file is written to this dir')
+@click.option('--limit', help='maximum number of datasets to process')
 @click.pass_obj
-def transform(index, product, config, output_dir):
+def transform(index, product, config, output_dir, limit):
 
     # Get the product
     dataset_type = index.products.get_by_name(product)
@@ -42,28 +44,29 @@ def transform(index, product, config, output_dir):
 
     # Is this a ingested product?
     if dataset_type.grid_spec is not None:
-        transform_ingested_datasets(index, product, cfg, Path(output_dir))
+        transform_ingested_datasets(index, product, cfg, Path(output_dir), limit)
     else:
-        transform_indexed_datasets(index, product, cfg, Path(output_dir))
+        transform_indexed_datasets(index, product, cfg, Path(output_dir), limit)
 
 
-def transform_ingested_datasets(index, product, config, output_dir):
+def transform_ingested_datasets(index, product, config, output_dir, limit):
     """
     Transform the metadata of ingested product. The product-wide fixed sections
     of metadata such as 'grids' is computed just once.
     """
 
-    dataset_ids = index.datasets.search_returning(field_names=('id',), product=product)
+    dataset_ids = index.datasets.search_returning(limit=limit, field_names=('id',), product=product)
 
     # Compute 'grids' section
     dataset_id = next(dataset_ids)
     dataset = index.datasets.get(dataset_id.id, include_sources=True)
     grids = get_grids(dataset, config.get('grids'))
 
-    # and process first file
+    # and process first dataset
     dataset_sections = (grids,) + _variable_sections_of_metadata(dataset, config)
     _make_and_write_dataset(get_output_file(dataset, output_dir), *dataset_sections)
 
+    # process rest of datasets
     for dataset_id in dataset_ids:
 
         dataset = index.datasets.get(dataset_id.id, include_sources=True)
@@ -72,13 +75,13 @@ def transform_ingested_datasets(index, product, config, output_dir):
         _make_and_write_dataset(get_output_file(dataset, output_dir), *dataset_sections)
 
 
-def transform_indexed_datasets(index, product, config, output_dir):
+def transform_indexed_datasets(index, product, config, output_dir, limit):
     """
     Transform metadata of an indexed product. All sections of metadata are computed
     per dataset.
     """
 
-    for dataset_id in index.datasets.search_returning(field_names=('id',), product=product):
+    for dataset_id in index.datasets.search_returning(limit=limit, field_names=('id',), product=product):
 
         dataset = index.datasets.get(dataset_id.id, include_sources=True)
         grids = get_grids(dataset, config.get('grids'))
@@ -102,7 +105,8 @@ def _variable_sections_of_metadata(dataset, config):
     """
     new_dataset = {'id': str(dataset.id),
                    'crs': 'EPSG:' + str(dataset.crs.epsg),
-                   'location': [uri for uri in dataset.uris]}
+                   'location': [uri for uri in dataset.uris],
+                   'file_format': dataset.metadata_doc.get('format', '')}
 
     return new_dataset, get_geometry(dataset), get_measurements(dataset, config.get('grids')), \
            get_properties(dataset), get_lineage(dataset)
