@@ -1,0 +1,357 @@
+name: sentinel2a_level2a_granule
+description: Sentinel-2A Level 2A - Sen2Cor Bottom of Atmosphere Reflectance
+metadata_type: eo
+
+metadata:
+  format: {name: JPEG2000}
+  instrument: {name: MSI}
+  platform: {code: Sentinel-2A}
+  product_type: S2MSI2A
+
+measurements:
+- name: 'B01_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_10m'
+  aliases: [blue]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_10m'
+  aliases: [green]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_10m'
+  aliases: [red]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B05_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B05_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B06_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B06_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B07_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B07_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B08_10m'
+  aliases: [nir, NIR]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B8A_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B8A_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B09_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B11_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B11_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B12_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B12_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'SCL_20m'
+  aliases: [QUALITY, quality, scl]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+  flags_definition: 
+    nodata:
+      bits: [0]
+      values: {0: false, 1: true}
+    saturated_defective:
+      bits: [1]
+      values: {0: false, 1: true}
+    dark_feature_shadow:
+      bits: [2]
+      values: {0: false, 1: true}
+    cloud_shadow:
+      bits: [3]
+      values: {0: false, 1: true}
+    vegetation:
+      bits: [4]
+      values: {0: false, 1: true}
+    not_vegetated:
+      bits: [5]
+      values: {0: false, 1: true}
+    water:
+      bits: [6]
+      values: {0: false, 1: true}
+    unclassified:
+      bits: [7]
+      values: {0: false, 1: true}
+    cloud_medium_probabilty:
+      bits: [8]
+      values: {0: false, 1: true}
+    cloud_high_probabilty:
+      bits: [9]
+      values: {0: false, 1: true}
+    thin_cirrus:
+      bits: [10]
+      values: {0: false, 1: true}
+    snow_ice:
+      bits: [11]
+      values: {0: false, 1: true}
+
+---
+
+name: sentinel2b_level2a_granule
+description: Sentinel-2B Level 2A - Sen2Cor Bottom of Atmosphere Reflectance
+metadata_type: eo
+
+metadata:
+  format: {name: JPEG2000}
+  instrument: {name: MSI}
+  platform: {code: Sentinel-2B}
+  product_type: S2MSI2A
+
+measurements:
+- name: 'B01_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_10m'
+  aliases: [blue]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B02_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_10m'
+  aliases: [green]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B03_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_10m'
+  aliases: [red]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B04_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B05_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B05_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B06_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B06_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B07_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B07_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B08_10m'
+  aliases: [nir, NIR]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B8A_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B8A_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B09_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B11_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B11_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B12_20m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'B12_60m'
+  units: '1'
+  dtype: uint16
+  nodata: 0
+
+- name: 'SCL_20m'
+  aliases: [QUALITY, quality, scl]
+  units: '1'
+  dtype: uint16
+  nodata: 0
+  flags_definition: 
+    nodata:
+      bits: [0]
+      values: {0: false, 1: true}
+    saturated_defective:
+      bits: [1]
+      values: {0: false, 1: true}
+    dark_feature_shadow:
+      bits: [2]
+      values: {0: false, 1: true}
+    cloud_shadow:
+      bits: [3]
+      values: {0: false, 1: true}
+    vegetation:
+      bits: [4]
+      values: {0: false, 1: true}
+    not_vegetated:
+      bits: [5]
+      values: {0: false, 1: true}
+    water:
+      bits: [6]
+      values: {0: false, 1: true}
+    unclassified:
+      bits: [7]
+      values: {0: false, 1: true}
+    cloud_medium_probabilty:
+      bits: [8]
+      values: {0: false, 1: true}
+    cloud_high_probabilty:
+      bits: [9]
+      values: {0: false, 1: true}
+    thin_cirrus:
+      bits: [10]
+      values: {0: false, 1: true}
+    snow_ice:
+      bits: [11]
+      values: {0: false, 1: true}
